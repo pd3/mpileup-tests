@@ -1,0 +1,75 @@
+cmd: bcftools mpileup -t 1:149 -f CHM1_CHM13_2.45x-1-1701408.fa CHM1_CHM13_2.45x-1-1701408.bam
+exp: 1:149 CAAAACA C
+
+cmd: bcftools mpileup -t 1:150 -f CHM1_CHM13_2.45x-1-1949773.fa CHM1_CHM13_2.45x-1-1949773.bam
+exp: 1:150 A AATAAC
+
+cmd: bcftools mpileup -t 1:151 -f CHM1_CHM13_2.45x-1-2050152.fa CHM1_CHM13_2.45x-1-2050152.bam
+exp: 1:151 C CTGTGTG
+
+cmd: bcftools mpileup -t 1:131 -f CHM1_CHM13_2.45x-1-2540473.fa CHM1_CHM13_2.45x-1-2540473.bam
+exp: 1:131 T TACAC
+
+cmd: bcftools mpileup -t 1:144 -f CHM1_CHM13_2.45x-1-3306513.fa CHM1_CHM13_2.45x-1-3306513.bam
+exp: 1:144 GCCC G
+
+cmd: bcftools mpileup -t 1:145 -f CHM1_CHM13_2.45x-1-4046152.fa CHM1_CHM13_2.45x-1-4046152.bam
+exp: 1:145 CATATATATATATAT C
+
+cmd: bcftools mpileup -t 1:147 -f CHM1_CHM13_2.45x-1-4196536.fa CHM1_CHM13_2.45x-1-4196536.bam
+exp: 1:147 ATCAACATGGGAGTGGGTTAG A
+
+cmd: bcftools mpileup -t 1:145 -f CHM1_CHM13_2.45x-1-4582929.fa CHM1_CHM13_2.45x-1-4582929.bam
+exp: 1:145 CATCT C
+
+cmd: bcftools mpileup -t 1:137 -f CHM1_CHM13_2.45x-1-5339195.fa CHM1_CHM13_2.45x-1-5339195.bam
+exp: 1:137 TTGTGTG T
+
+cmd: bcftools mpileup -t 1:137 -f CHM1_CHM13_2.45x-1-5339195.fa CHM1_CHM13_2.45x-1-5339195.bam
+exp: 1:137 TTGTG T
+
+cmd: bcftools mpileup -t 1:143 -f CHM1_CHM13_2.45x-1-5559788.fa CHM1_CHM13_2.45x-1-5559788.bam
+exp: 1:143 G GTAGATAGA
+
+cmd: bcftools mpileup -t 1:148 -f CHM1_CHM13_2.45x-1-5576604.fa CHM1_CHM13_2.45x-1-5576604.bam
+exp: 1:148 AAC A
+
+cmd: bcftools mpileup -t 1:149 -f CHM1_CHM13_2.45x-1-5833384.fa CHM1_CHM13_2.45x-1-5833384.bam
+exp: 1:149 CAAATAAAT C
+
+cmd: bcftools mpileup -t 1:128 -f CHM1_CHM13_2.45x-1-5881482.fa CHM1_CHM13_2.45x-1-5881482.bam
+exp: 1:128 G GGAAGGAGAGAAA
+
+cmd: bcftools mpileup -t 1:151 -f CHM1_CHM13_2.45x-1-6087279.fa CHM1_CHM13_2.45x-1-6087279.bam
+exp: 1:151 AGTGT A
+
+cmd: bcftools mpileup -t 1:140 -f CHM1_CHM13_2.45x-1-6793250.fa CHM1_CHM13_2.45x-1-6793250.bam
+exp: 1:140 T TCACACACACACACACA
+
+cmd: bcftools mpileup -t 1:141 -f CHM1_CHM13_2.45x-1-7602898.fa CHM1_CHM13_2.45x-1-7602898.bam
+exp: 1:141 A AGTTTGTGTGT
+
+cmd: bcftools mpileup -t 1:149 -f CHM1_CHM13_2.45x-1-7951596.fa CHM1_CHM13_2.45x-1-7951596.bam
+exp: 1:149 A AAAAGAAAG
+
+cmd: bcftools mpileup -t 1:151 -f CHM1_CHM13_2.45x-1-7984354.fa CHM1_CHM13_2.45x-1-7984354.bam
+exp: 1:151 CATATATATATATATAT C
+
+cmd: bcftools mpileup -t 1:148 -f CHM1_CHM13_2.45x-1-8018929.fa CHM1_CHM13_2.45x-1-8018929.bam
+exp: 1:148 T TGG
+
+cmd: bcftools mpileup -t 1:146 -f CHM1_CHM13_2.45x-1-8302740.fa CHM1_CHM13_2.45x-1-8302740.bam
+exp: 1:146 CTTTA C
+
+cmd: bcftools mpileup -t 1:150 -f CHM1_CHM13_2.45x-1-8315433.fa CHM1_CHM13_2.45x-1-8315433.bam
+exp: 1:150 C CTTCT
+
+cmd: bcftools mpileup -t 1:146 -f CHM1_CHM13_2.45x-1-8558792.fa CHM1_CHM13_2.45x-1-8558792.bam
+exp: 1:146 T TATACACACACAC
+
+cmd: bcftools mpileup -t 1:147 -f CHM1_CHM13_2.45x-1-9033771.fa CHM1_CHM13_2.45x-1-9033771.bam
+exp: 1:147 CTTTCTT C
+
+cmd: bcftools mpileup -t 1:148 -f CHM1_CHM13_2.45x-1-9936903.fa CHM1_CHM13_2.45x-1-9936903.bam
+exp: 1:148 T TACACACACACAC
+
