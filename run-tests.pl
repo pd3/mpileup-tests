@@ -358,7 +358,7 @@ sub run_test
     print ".. region ok\n";
     $$stats{nregions_match}++;
 
-    if ( scalar @exp_variants != $has_variant )
+    if ( scalar @exp_variants != $has_variant or $has_variant != scalar keys %got )
     {
         print ".. variant(s) missed\n";
         print "\texpected: $exp\n";
