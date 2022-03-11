@@ -51,7 +51,7 @@ sub error
     my (@msg) = @_;
     if ( scalar @msg ) { confess @msg; }
     print
-        "About: test bcftools calling using tests in the tests subdirectory. The test files are formatted as\n",
+        "About: Test bcftools calling using definitions in the tests subdirectory. The files are formatted as\n",
         "           cmd: command line\n",
         "           fmt: bcftools query format, the default is \"%CHROM:%POS %REF %ALT\", and this part is mandatory\n",
         "           exp: expected result\n",
@@ -62,12 +62,20 @@ sub error
         "       Small BAM tests can be produced with\n",
         "         ./misc/create-bam-test -b file.bam -f file.fa -r chr:pos -o prefix\n",
         "\n",
-        "Usage: run-tests.pl [OPTIONS]\n",
+        "Usage: run-tests.pl [OPTIONS] [BAM]\n",
         "Options:\n",
         "   -b, --bcftools PATH     BCFtools executable.\n",
         "   -d, --dry-run           Print commands but do not run anything.\n",
+        "   -r, --run-test BAM      Run only tests that use this BAM.\n",
         "   -t, --temp-dir PATH     When given, temporary files will not be removed.\n",
         "   -h, -?, --help          This help message.\n",
+        "\n",
+        "Examples:\n",
+        "   # run all tests\n",
+        "   ./run-tests.pl\n",
+        "\n",
+        "   # run only tests that use HG002.GRCh38.PacBio_CCS_15Kb.chr1-2186496-2186506.bam\n",
+        "   ./run-tests.pl -r HG002.GRCh38.PacBio_CCS_15Kb.chr1-2186496-2186506.bam\n",
         "\n";
     exit -1;
 }
@@ -95,6 +103,7 @@ sub parse_params
         if (                 $arg eq '--list-orphans' ) { $$opts{list_orphans}=1; next }
         if ( $arg eq '-d' or $arg eq '--dry-run' ) { $$opts{dry_run}=1; next }
         if ( $arg eq '-b' or $arg eq '--bcftools' ) { $$opts{bcftools}=shift(@ARGV); next }
+        if ( $arg eq '-r' or $arg eq '--run-test' ) { my $bam = shift(@ARGV); $$opts{run_test}{$bam} = 1; next }
         if ( $arg eq '-t' or $arg eq '--temp-dir' ) { $$opts{tmp}=shift(@ARGV); next }
         if ( $arg eq '-?' or $arg eq '-h' or $arg eq '--help' ) { error(); }
         error("Unknown parameter \"$arg\". Run -h for help.\n");
@@ -310,59 +319,71 @@ sub run_test
     my ($ret,$out,$err) = _cmd3(qq[cd $$opts{dat} && $exe]);
 
     # Compare the output, the first field must be always "chr:pos ref alt"
-    my $has_variant = 0;
-    my $has_details = 0;
-    my @exp = split(/\s+/,$exp);
+    # Multiple expected variants can be given separated by a semicolon
+    my %got = ();
     for my $line (@$out)
     {
-        chomp($line);
+        $line =~ s/^\s*//;
+        $line =~ s/\s*$//;
         my @got = split(/\s+/,$line);
-        $has_variant = 1;
-        for (my $i=0; $i<3; $i++)
-        {
-            if ( $exp[$i] eq $got[$i] ) { next; }
-            $has_variant = 0;
-            last;
-        }
-        if ( !$has_variant ) { next; }
-        $has_details = 1;
-        for (my $i=3; $i<@exp; $i++)
-        {
-            if ( $exp[$i] eq $got[$i] ) { next; }
-            $has_details = 0;
-            last;
-        }
-        last;
+        my $key = join(' ',@got[0..2]);
+        $got{$key} = join(' ',@got);
     }
 
-    # Report the status
-    if ( $has_variant )
+    my $has_variant  = 0;
+    my $has_details  = 0;
+    my $need_details = 0;
+    my @exp_variants = split(/;/,$exp);
+    for my $line (@exp_variants)
     {
-        print ".. site ok\n";
-        $$stats{nsites_match}++;
+        $line =~ s/^\s*//;
+        $line =~ s/\s*$//;
+        my @exp = split(/\s+/,$line);
+        my $key = join(' ',@exp[0..2]);
+        my $dat = join(' ',@exp);
+        if ( exists($got{$key}) ) { $has_variant++; }
+        if ( scalar @exp > 3 ) { $need_details++; }
+        if ( scalar @exp > 3 && $dat eq $got{$key} ) { $has_details++; }
     }
-    else
+
+    # Collect stats
+    if ( !$has_variant )
     {
-        print ".. site missed\n";
-        print "\texpected:$exp\n";
-        print "\tfound:   ",join('',@$out),"\n";
-        $$stats{nsites_missed}++;
+        print ".. region missed\n";
+        print "\texpected: $exp\n";
+        print "\tfound:    ",join(', ',@$out),"\n";
+        $$stats{nregions_missed}++;
+        return;
     }
-    if ( $has_variant && @exp>3 )
+    print ".. region ok\n";
+    $$stats{nregions_match}++;
+
+    if ( scalar @exp_variants != $has_variant )
     {
-        if ( $has_details )
-        {
-            print "\t.. details ok\n";
-            $$stats{ndetails_match}++;
-        }
-        else
-        {
-            print "\t.. details missed\n";
-            print "\texpected:$exp\n";
-            print "\tfound:   ",join('',@$out),"\n";
-            $$stats{ndetails_missed}++;
-        }
+        print ".. variant(s) missed\n";
+        print "\texpected: $exp\n";
+        print "\tfound:    ",join(', ',@$out),"\n";
+        $$stats{nvariants_missed} += scalar @exp_variants - $has_variant;
+        $$stats{nvariants_match}  += $has_variant;
+        return;
     }
+
+    print ".. variants ok\n";
+    $$stats{nvariants_match} += $has_variant;
+
+    if ( !$need_details ) { return; }
+    if ( scalar @exp_variants != $has_details )
+    {
+        print ".. details missed\n";
+        print "\texpected: $exp\n";
+        print "\tfound:    ",join(', ',@$out),"\n";
+        $$stats{ndetails_missed} += scalar @exp_variants - $has_details;
+        $$stats{ndetails_match}  += $has_details;
+        return;
+    }
+
+    print ".. details ok\n";
+    $$stats{ndetails_match} += $has_details;
 }
 
 sub run_tests
@@ -370,10 +391,12 @@ sub run_tests
     my ($opts) = @_;
     $$opts{stats} =
     {
-        nsites_match    => 0,
-        nsites_missed   => 0,
-        ndetails_match  => 0,
-        ndetails_missed => 0,
+        nregions_match   => 0,
+        nregions_missed  => 0,
+        nvariants_match  => 0,
+        nvariants_missed => 0,
+        ndetails_match   => 0,
+        ndetails_missed  => 0,
 
     };
     for my $test (sort {$$opts{tests}{$a}{num}<=>$$opts{tests}{$b}{num}} keys %{$$opts{tests}})
@@ -382,6 +405,12 @@ sub run_tests
         my $job = $$opts{tests}{$test};
         my ($chrpos,$ref,$alt,$gt) = split(/\s+/,$$job{exp});
         my @exe = $$job{cmd};
+        if ( exists($$opts{run_test}) )
+        {
+            if ( !($$job{cmd}=~/\S+\.bam/) ) { error("Could not identify the BAM file in \"$$job{cmd}\"\n"); }
+            my $bam = $&;
+            if ( !exists($$opts{run_test}{$bam}) ) { next; }
+        }
         if ( !($$job{cmd}=~/\|/) )
         {
             if ( !($$job{cmd}=~/\S+\.fa/) ) { error("Could not identify the fasta reference in \"$$job{cmd}\"\n"); }
@@ -401,12 +430,17 @@ sub run_tests
 
     # Print the summary status
     my $stats = $$opts{stats};
-    my $nsites   = $$stats{nsites_match} + $$stats{nsites_missed};
-    my $ndetails = $$stats{ndetails_match} + $$stats{ndetails_missed};
-    print "\nNumber of sites tested:\n";
-    printf "    total  .. %d\n", $nsites;
-    printf "    passed .. %d  (%.1f%%)\n", $$stats{nsites_match}, $nsites ? 100.*$$stats{nsites_match}/$nsites : 0;
-    printf "    missed .. %d  (%.1f%%)\n", $$stats{nsites_missed}, $nsites ? 100.*$$stats{nsites_missed}/$nsites : 0;
+    my $nregions  = $$stats{nregions_match} + $$stats{nregions_missed};
+    my $nvariants = $$stats{nvariants_match} + $$stats{nvariants_missed};
+    my $ndetails  = $$stats{ndetails_match} + $$stats{ndetails_missed};
+    print "\nNumber of regions tested:\n";
+    printf "    total  .. %d\n", $nregions;
+    printf "    passed .. %d  (%.1f%%)\n", $$stats{nregions_match}, $nregions ? 100.*$$stats{nregions_match}/$nregions : 0;
+    printf "    missed .. %d  (%.1f%%)\n", $$stats{nregions_missed}, $nregions ? 100.*$$stats{nregions_missed}/$nregions : 0;
+    print "\nNumber of variants tested:\n";
+    printf "    total  .. %d\n", $nvariants;
+    printf "    passed .. %d  (%.1f%%)\n", $$stats{nvariants_match}, $nvariants ? 100.*$$stats{nvariants_match}/$nvariants : 0;
+    printf "    missed .. %d  (%.1f%%)\n", $$stats{nvariants_missed}, $nvariants ? 100.*$$stats{nvariants_missed}/$nvariants : 0;
     print "\nNumber of details tested:\n";
     printf "    total  .. %d\n", $ndetails;
     printf "    passed .. %d  (%.1f%%)\n", $$stats{ndetails_match}, $ndetails ? 100.*$$stats{ndetails_match}/$ndetails : $ndetails;

@@ -1,5 +1,0 @@
-
-cmd: bcftools mpileup -X pacbio-ccs -t NC_045512.2:553 -f omicron-multiple-indels.fa omicron-multiple-indels.bam | bcftools call -m
-exp: NC_045512.2:553 AATT A
-
-

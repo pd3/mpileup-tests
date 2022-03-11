@@ -1,0 +1,9 @@
+
+cmd: bcftools mpileup -X pacbio-ccs -t NC_045512.2:553 -f omicron-multiple-indels.fa omicron-multiple-indels.bam
+exp: NC_045512.2:553 AATT A
+
+# This is a G>GC insertion phased with downstream G>C. Spurious reads with G>GCC and GC>G test
+# the consensus template creation
+cmd: bcftools mpileup -X pacbio-ccs -t chr1:13939,chr1:13949 -f HG002.GRCh38.PacBio_CCS_15Kb.chr1-2186496-2186506.fa HG002.GRCh38.PacBio_CCS_15Kb.chr1-2186496-2186506.bam
+exp: chr1:13939 G GC; chr1:13949 G C
+
