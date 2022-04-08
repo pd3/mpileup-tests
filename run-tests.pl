@@ -293,7 +293,7 @@ sub expand_paths
 {
     my ($opts,$test,$args) = @_;
     my $out = $args;
-    for my $type (qw(bcftools fa bam cram))
+    for my $type (qw(fa bam cram))
     {
         my $tmp = $out;
         $out = '';
@@ -305,6 +305,18 @@ sub expand_paths
             if ( exists($$opts{paths}{$file}) ) { $file = $$opts{paths}{$file}; }
             if ( !-e "$$opts{dat}/$file" ) { error("\n\nNo such file referenced from $test\n\t$$opts{dat}/$file\n\n"); }
             $out .= $prev . $file;
+        }
+        $out .= $tmp;
+    }
+    if ( $$opts{bcftools} ne 'bcftools' )
+    {
+        my $tmp = $out;
+        $out = '';
+        while ( $tmp=~/bcftools\s+/ )
+        {
+            my $prev = $`;
+            $tmp = $';
+            $out .= $prev . $$opts{bcftools} . ' ';
         }
         $out .= $tmp;
     }
