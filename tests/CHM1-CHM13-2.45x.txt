@@ -1,6 +1,7 @@
 cmd: bcftools mpileup -t 1:149 -f CHM1_CHM13_2.45x-1-1701408.fa CHM1_CHM13_2.45x-1-1701408.bam
-exp: 1:149 CAAAACA C
+exp: 1:149 CAAAACAAAAACA	C,CAAAACA
 
+# IGV snapshot: CHM1-CHM13-2.45x/CHM1_CHM13_2.45x-1-1949773.png
 cmd: bcftools mpileup -t 1:150 -f CHM1_CHM13_2.45x-1-1949773.fa CHM1_CHM13_2.45x-1-1949773.bam
 exp: 1:150 A AATAAC
 

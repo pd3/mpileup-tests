@@ -198,13 +198,18 @@ sub parse_tests
         while (my $line=<$fh>)
         {
             $num++;
-            if ( $line=~/^#/ ) { next; }
+            if ( $line=~/^\s*$/ ) { delete($$job{comment}); next; }
+            if ( $line=~/^#\s*/ )
+            {
+                $$job{comment} .= $line;
+                next;
+            }
             for my $key (@keys)
             {
                 if ( !($line=~/^$key:/) ) { next; }
                 $line =~ s/^$key:\s*//;
                 $line =~ s/\s*$//;
-                if ( scalar %$job == 0 )
+                if ( scalar %$job == 0 or (scalar %$job == 1 && exists($$job{comment})) )
                 {
                     $$job{num}  = $num;
                     $$job{file} = $test;
@@ -330,6 +335,16 @@ sub run_test
     my $stats = $$opts{stats};
     my ($ret,$out,$err) = _cmd3(qq[cd $$opts{dat} && $exe]);
 
+    $$stats{ncmd_run}++;
+    if ( $ret )
+    {
+        print ".. ERROR, the command failed\n";
+        $err =~ s/\n/\n\t/g;
+        print "\t$err\n";
+        $$stats{ncmd_error}++;
+        return;
+    }
+
     # Compare the output, the first field must be always "chr:pos ref alt"
     # Multiple expected variants can be given separated by a semicolon
     my %got = ();
@@ -409,7 +424,8 @@ sub run_tests
         nvariants_missed => 0,
         ndetails_match   => 0,
         ndetails_missed  => 0,
-
+        ncmd_error       => 0,
+        ncmd_run         => 0,
     };
     for my $test (sort {$$opts{tests}{$a}{num}<=>$$opts{tests}{$b}{num}} keys %{$$opts{tests}})
     {
@@ -427,13 +443,14 @@ sub run_tests
         {
             if ( !($$job{cmd}=~/\S+\.fa/) ) { error("Could not identify the fasta reference in \"$$job{cmd}\"\n"); }
             my $fa_ref = $&;
-            push @exe,qq[ $$opts{bcftools} call -m ];
-            push @exe,qq[ $$opts{bcftools} view -i 'N_ALT>0' ];
-            push @exe,qq[ $$opts{bcftools} norm -f $fa_ref ];
+            push @exe,qq[ bcftools call -m ];
+            push @exe,qq[ bcftools view -i 'N_ALT>0' ];
+            push @exe,qq[ bcftools norm -f $fa_ref ];
         }
-        push @exe,qq[ $$opts{bcftools} query -f '$$job{fmt}\\n' ];
+        push @exe,qq[ bcftools query -f '$$job{fmt}\\n' ];
         my $exe = expand_paths($opts, $test, join('|',@exe));
-        print "\n# $test\n$exe\n";
+        my $cmt = exists($$job{comment}) ? $$job{comment} : '';
+        print "\n# $test\n$cmt$exe\n";
 
         # Run the test
         if ( $$opts{dry_run} ) { next; }
@@ -445,18 +462,21 @@ sub run_tests
     my $nregions  = $$stats{nregions_match} + $$stats{nregions_missed};
     my $nvariants = $$stats{nvariants_match} + $$stats{nvariants_missed};
     my $ndetails  = $$stats{ndetails_match} + $$stats{ndetails_missed};
+    print "\nNumber of tests executed:\n";
+    printf "    total     %d\n", $$stats{ncmd_run};
+    printf "    FAILED    %d  (%.1f%%)\n", $$stats{ncmd_error}, $$stats{ncmd_run} ? 100.*$$stats{ncmd_error}/$$stats{ncmd_run} : 0;
     print "\nNumber of regions tested:\n";
-    printf "    total  .. %d\n", $nregions;
-    printf "    passed .. %d  (%.1f%%)\n", $$stats{nregions_match}, $nregions ? 100.*$$stats{nregions_match}/$nregions : 0;
-    printf "    missed .. %d  (%.1f%%)\n", $$stats{nregions_missed}, $nregions ? 100.*$$stats{nregions_missed}/$nregions : 0;
+    printf "    total     %d\n", $nregions;
+    printf "    passed    %d  (%.1f%%)\n", $$stats{nregions_match}, $nregions ? 100.*$$stats{nregions_match}/$nregions : 0;
+    printf "    MISSED    %d  (%.1f%%)\n", $$stats{nregions_missed}, $nregions ? 100.*$$stats{nregions_missed}/$nregions : 0;
     print "\nNumber of variants tested:\n";
-    printf "    total  .. %d\n", $nvariants;
-    printf "    passed .. %d  (%.1f%%)\n", $$stats{nvariants_match}, $nvariants ? 100.*$$stats{nvariants_match}/$nvariants : 0;
-    printf "    missed .. %d  (%.1f%%)\n", $$stats{nvariants_missed}, $nvariants ? 100.*$$stats{nvariants_missed}/$nvariants : 0;
+    printf "    total     %d\n", $nvariants;
+    printf "    passed    %d  (%.1f%%)\n", $$stats{nvariants_match}, $nvariants ? 100.*$$stats{nvariants_match}/$nvariants : 0;
+    printf "    MISSED    %d  (%.1f%%)\n", $$stats{nvariants_missed}, $nvariants ? 100.*$$stats{nvariants_missed}/$nvariants : 0;
     print "\nNumber of details tested:\n";
-    printf "    total  .. %d\n", $ndetails;
-    printf "    passed .. %d  (%.1f%%)\n", $$stats{ndetails_match}, $ndetails ? 100.*$$stats{ndetails_match}/$ndetails : $ndetails;
-    printf "    missed .. %d  (%.1f%%)\n", $$stats{ndetails_missed}, $ndetails ? 100.*$$stats{ndetails_missed}/$ndetails : $ndetails;
+    printf "    total     %d\n", $ndetails;
+    printf "    passed    %d  (%.1f%%)\n", $$stats{ndetails_match}, $ndetails ? 100.*$$stats{ndetails_match}/$ndetails : $ndetails;
+    printf "    MISSED    %d  (%.1f%%)\n", $$stats{ndetails_missed}, $ndetails ? 100.*$$stats{ndetails_missed}/$ndetails : $ndetails;
     print "\n";
 }
 

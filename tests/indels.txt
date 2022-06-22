@@ -1,6 +1,9 @@
 
-# Two reads don't span the deletion and are aligned as 1-bp insertion instead, which should not be called
+# Two reads don't span the deletion and are aligned as 1-bp insertion instead. The insertion should not be called
 cmd: bcftools mpileup -t chr1:129,chr1:139 -f HG002.GRCh38.30x.chr1-53628138-53628148.fa HG002.GRCh38.30x.chr1-53628138-53628148.bam
 exp: chr1:129 CCCTTGCTGTG C
 
-
+# Only one sample has the insertion. Make sure the one without the insertion has correct AD counts
+cmd: bcftools mpileup -a AD -t chrX:93 -f annots-AD.fa annots-AD.1.bam annots-AD.2.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: chrX:93 T TA  2,24 34,0
