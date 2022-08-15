@@ -1,5 +1,6 @@
 
-# Two reads don't span the deletion and are aligned as 1-bp insertion instead. The insertion should not be called, it's a homozygous deletion
+# Expected failure:
+#   Two reads don't span the deletion and are aligned as 1-bp insertion instead. The insertion should not be called, it's a homozygous deletion.
 cmd: bcftools mpileup -t chr1:129,chr1:139 -f HG002.GRCh38.30x.chr1-53628138-53628148.fa HG002.GRCh38.30x.chr1-53628138-53628148.bam
 exp: chr1:129 CCCTTGCTGTG C
 
