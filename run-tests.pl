@@ -224,6 +224,7 @@ sub parse_tests
             if ( $complete )
             {
                 if ( !exists($$job{fmt}) ) { $$job{fmt} = '%CHROM:%POS %REF %ALT'; }
+                $$job{sort_id} = scalar %jobs;
                 my $id = "$$job{file}:$$job{num}";
                 $id =~ s/\s+/_/g;
                 $jobs{$id} = { %$job };
@@ -370,7 +371,7 @@ sub run_test
         my $dat = join(' ',@exp);
         if ( exists($got{$key}) ) { $has_variant++; }
         if ( scalar @exp > 3 ) { $need_details++; }
-        if ( scalar @exp > 3 && $dat eq $got{$key} ) { $has_details++; }
+        if ( scalar @exp > 3 && exists($got{$key}) && $dat eq $got{$key} ) { $has_details++; }
     }
 
     # Collect stats
@@ -427,7 +428,7 @@ sub run_tests
         ncmd_error       => 0,
         ncmd_run         => 0,
     };
-    for my $test (sort {$$opts{tests}{$a}{num}<=>$$opts{tests}{$b}{num}} keys %{$$opts{tests}})
+    for my $test (sort {$$opts{tests}{$a}{sort_id}<=>$$opts{tests}{$b}{sort_id}} keys %{$$opts{tests}})
     {
         # Create the command line
         my $job = $$opts{tests}{$test};

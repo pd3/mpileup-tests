@@ -1,10 +1,19 @@
 
-# Expected failure:
-#   Two reads don't span the deletion and are aligned as 1-bp insertion instead. The insertion should not be called, it's a homozygous deletion.
-cmd: bcftools mpileup -t chr1:129,chr1:139 -f HG002.GRCh38.30x.chr1-53628138-53628148.fa HG002.GRCh38.30x.chr1-53628138-53628148.bam
-exp: chr1:129 CCCTTGCTGTG C
+# Two reads don't span the deletion and are aligned as 1-bp insertion instead. The insertion should not be called, it's a homozygous deletion.
+# Note the number of supporting reads is not precise.
+# IGV snapshot: indels/HG002.GRCh38.30x.chr1-53628138-53628148.png
+cmd: bcftools mpileup --indels-2.0 -a AD -t chr1:129,chr1:139 -f HG002.GRCh38.30x.chr1-53628138-53628148.fa HG002.GRCh38.30x.chr1-53628138-53628148.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: chr1:129 CCCTTGCTGTG C 1,14
 
-# Only one sample has the insertion. Make sure the one without the insertion has correct AD counts
-cmd: bcftools mpileup -a AD -t chrX:93 -f annots-AD.fa annots-AD.1.bam annots-AD.2.bam
+# Only one sample has the insertion (homozygous). Make sure the one without the insertion has correct AD counts
+cmd: bcftools mpileup --indels-2.0 -a AD -t chrX:93 -f annots-AD.fa annots-AD.1.bam annots-AD.2.bam
 fmt: %CHROM:%POS %REF %ALT [ %AD]
 exp: chrX:93 T TA  2,24 34,0
+
+# Homozygous deletion which had in past incorret AD counts. However, the heuristics introduced by #1446 seems no
+# longer necessary and is removed from --indels-2.0
+cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t MN908947.3:143 -f homdel-issue-1446.fa homdel-issue-1446.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: MN908947.3:143	CA	C 0,253
+

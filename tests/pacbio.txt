@@ -1,9 +1,14 @@
 
-cmd: bcftools mpileup -X pacbio-ccs -t NC_045512.2:553 -f omicron-multiple-indels.fa omicron-multiple-indels.bam
-exp: NC_045512.2:553 AATT A
+# Homozygous deletion followed by a homozygous insertion. The number of supporting reads is 5-6, depending on how the noise is interpreted
+# See also https://github.com/samtools/bcftools/issues/1459#issuecomment-1022658928
+# IGV snapshot: pacbio/omicron-multiple-indels.png
+cmd: bcftools mpileup --indels-2.0 -X pacbio-ccs -a AD -t NC_045512.2:553,NC_045512.2:564 -f omicron-multiple-indels.fa omicron-multiple-indels.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: NC_045512.2:553 AATT A 0,6; NC_045512.2:564 T TGAGCCAGAA 0,5
 
 # This is a G>GC insertion phased with downstream G>C. Spurious reads with G>GCC and GC>G test
 # the consensus template creation
+# IGV snapshot: pacbio/HG002.GRCh38.PacBio_CCS_15Kb.chr1-2186496-2186506.png
 cmd: bcftools mpileup -X pacbio-ccs -t chr1:13939,chr1:13949 -f HG002.GRCh38.PacBio_CCS_15Kb.chr1-2186496-2186506.fa HG002.GRCh38.PacBio_CCS_15Kb.chr1-2186496-2186506.bam
 exp: chr1:13939 G GC; chr1:13949 G C
 

@@ -1,5 +1,9 @@
-cmd: bcftools mpileup -t 1:149 -f CHM1_CHM13_2.45x-1-1701408.fa CHM1_CHM13_2.45x-1-1701408.bam
-exp: 1:149 CAAAACAAAAACA	C,CAAAACA
+
+# Seeminly three haplotypes but in fact two alt het deletions
+# IGV snapshot: CHM1-CHM13-2.45x/CHM1_CHM13_2.45x-1-1701408.png
+cmd: bcftools mpileup --indels-2.0 -a AD -t 1:149 -f CHM1_CHM13_2.45x-1-1701408.fa CHM1_CHM13_2.45x-1-1701408.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: 1:149 CAAAACAAAAACA	C,CAAAACA 0,20,16
 
 # Expecting two alleles, 5bp deletion and 5bp insertion
 # IGV snapshot: CHM1-CHM13-2.45x/CHM1_CHM13_2.45x-1-1949773.png
