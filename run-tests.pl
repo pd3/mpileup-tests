@@ -62,7 +62,7 @@ sub error
         "       Small BAM tests can be produced with\n",
         "         ./misc/create-bam-test -b file.bam -f file.fa -r chr:pos -o prefix\n",
         "\n",
-        "Usage: run-tests.pl [OPTIONS] [BAM]\n",
+        "Usage: run-tests.pl [OPTIONS] [TEST]\n",
         "Options:\n",
         "   -b, --bcftools PATH     BCFtools executable.\n",
         "   -d, --dry-run           Print commands but do not run anything.\n",
@@ -106,6 +106,7 @@ sub parse_params
         if ( $arg eq '-r' or $arg eq '--run-test' ) { my $bam = shift(@ARGV); $$opts{run_test}{$bam} = 1; next }
         if ( $arg eq '-t' or $arg eq '--temp-dir' ) { $$opts{tmp}=shift(@ARGV); next }
         if ( $arg eq '-?' or $arg eq '-h' or $arg eq '--help' ) { error(); }
+        if ( -e $arg ) { push @{$$opts{test_files}},$arg; next }
         error("Unknown parameter \"$arg\". Run -h for help.\n");
     }
     if ( !exists($$opts{tmp}) ) { $$opts{tmp} = safe_tempdir; }
@@ -189,7 +190,7 @@ sub parse_tests
     my ($opts) = @_;
     my @keys = (qw(cmd fmt exp));
     my %jobs = ();
-    my @tests = glob("$$opts{tests}/*.txt");
+    my @tests = exists($$opts{test_files}) ? @{$$opts{test_files}} : glob("$$opts{tests}/*.txt");
     for my $test (@tests)
     {
         open(my $fh,'<',$test) or error("$test: $!");
