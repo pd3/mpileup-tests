@@ -18,3 +18,9 @@ cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t MN908947.3:143 -f homdel-issu
 fmt: %CHROM:%POS %REF %ALT [ %AD]
 exp: MN908947.3:143	CA	C 0,253
 
+# 2bp het del with neighbouring phased 4bp het ins plus 2 SNPs
+# tview snapshot: indels/het-indels-snps.png
+cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:148,1:155 -f het-indels-snps.fa het-indels-snps.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: 1:148 GCC G 25,26; 1:155 G GGGCT 24,24
+
