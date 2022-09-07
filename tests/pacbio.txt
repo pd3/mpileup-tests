@@ -4,7 +4,7 @@
 # IGV snapshot: pacbio/omicron-multiple-indels.png
 cmd: bcftools mpileup --indels-2.0 -X pacbio-ccs -a AD -t NC_045512.2:553,NC_045512.2:564 -f omicron-multiple-indels.fa omicron-multiple-indels.bam
 fmt: %CHROM:%POS %REF %ALT [ %AD]
-exp: NC_045512.2:553 AATT A 0,6; NC_045512.2:564 T TGAGCCAGAA 0,5
+exp: NC_045512.2:553 AATT A 0,6; NC_045512.2:564 T TGAGCCAGAA 0,6
 
 # This is a G>GC insertion phased with downstream G>C. Spurious reads with G>GCC and GC>G test
 # the consensus template creation

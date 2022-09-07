@@ -65,8 +65,10 @@ sub error
         "Usage: run-tests.pl [OPTIONS] [TEST]\n",
         "Options:\n",
         "   -b, --bcftools PATH     BCFtools executable.\n",
+        "   -c, --curated-only      Run only curated tests, i.e. tests with comments\n",
         "   -d, --dry-run           Print commands but do not run anything.\n",
         "   -r, --run-test BAM      Run only tests that use this BAM.\n",
+        "   -q, --quiet             Print only failed tests.\n",
         "   -t, --temp-dir PATH     When given, temporary files will not be removed.\n",
         "   -h, -?, --help          This help message.\n",
         "\n",
@@ -97,10 +99,12 @@ sub safe_tempdir
 
 sub parse_params
 {
-    my $opts = { nok=>0, nfailed=>0, bcftools=>'bcftools' };
+    my $opts = { nok=>0, nfailed=>0, bcftools=>'bcftools', verbose=>1 };
     while (defined(my $arg=shift(@ARGV)))
     {
         if (                 $arg eq '--list-orphans' ) { $$opts{list_orphans}=1; next }
+        if ( $arg eq '-c' or $arg eq '--curated-only' ) { $$opts{curated_only}=1; next }
+        if ( $arg eq '-q' or $arg eq '--quiet' ) { $$opts{verbose}=0; next }
         if ( $arg eq '-d' or $arg eq '--dry-run' ) { $$opts{dry_run}=1; next }
         if ( $arg eq '-b' or $arg eq '--bcftools' ) { $$opts{bcftools}=shift(@ARGV); next }
         if ( $arg eq '-r' or $arg eq '--run-test' ) { my $bam = shift(@ARGV); $$opts{run_test}{$bam} = 1; next }
@@ -337,14 +341,16 @@ sub run_test
     my $stats = $$opts{stats};
     my ($ret,$out,$err) = _cmd3(qq[cd $$opts{dat} && $exe]);
 
+    my @msg = ();
+
     $$stats{ncmd_run}++;
     if ( $ret )
     {
-        print ".. ERROR, the command failed\n";
+        push @msg,".. ERROR, the command failed\n";
         $err =~ s/\n/\n\t/g;
-        print "\t$err\n";
+        push @msg,"\t$err\n";
         $$stats{ncmd_error}++;
-        return;
+        return (-1,\@msg);
     }
 
     # Compare the output, the first field must be always "chr:pos ref alt"
@@ -378,41 +384,42 @@ sub run_test
     # Collect stats
     if ( !$has_variant )
     {
-        print ".. region missed\n";
-        print "\texpected: $exp\n";
-        print "\tfound:    ",join(', ',@$out),"\n";
+        push @msg,".. region missed\n";
+        push @msg,"\texpected: $exp\n";
+        push @msg,"\tfound:    ",join('; ',@$out),"\n";
         $$stats{nregions_missed}++;
-        return;
+        return (-1,\@msg);
     }
-    print ".. region ok\n";
+    push @msg,".. region ok\n";
     $$stats{nregions_match}++;
 
     if ( scalar @exp_variants != $has_variant or $has_variant != scalar keys %got )
     {
-        print ".. variant(s) missed\n";
-        print "\texpected: $exp\n";
-        print "\tfound:    ",join(', ',@$out),"\n";
+        push @msg,".. variant(s) missed\n";
+        push @msg,"\texpected: $exp\n";
+        push @msg,"\tfound:    ",join(', ',@$out),"\n";
         $$stats{nvariants_missed} += scalar @exp_variants - $has_variant;
         $$stats{nvariants_match}  += $has_variant;
-        return;
+        return (-1,\@msg);
     }
 
-    print ".. variants ok\n";
+    push @msg,".. variants ok\n";
     $$stats{nvariants_match} += $has_variant;
 
     if ( !$need_details ) { return; }
     if ( scalar @exp_variants != $has_details )
     {
-        print ".. details missed\n";
-        print "\texpected: $exp\n";
-        print "\tfound:    ",join(', ',@$out),"\n";
+        push @msg,".. details missed\n";
+        push @msg,"\texpected: $exp\n";
+        push @msg,"\tfound:    ",join(', ',@$out),"\n";
         $$stats{ndetails_missed} += scalar @exp_variants - $has_details;
         $$stats{ndetails_match}  += $has_details;
-        return;
+        return (-1,\@msg);
     }
 
-    print ".. details ok\n";
+    push @msg,".. details ok\n";
     $$stats{ndetails_match} += $has_details;
+    return (0,\@msg);
 }
 
 sub run_tests
@@ -433,6 +440,8 @@ sub run_tests
     {
         # Create the command line
         my $job = $$opts{tests}{$test};
+        if ( $$opts{curated_only} && !exists($$job{comment}) ) { next; }
+
         my ($chrpos,$ref,$alt,$gt) = split(/\s+/,$$job{exp});
         my @exe = $$job{cmd};
         if ( exists($$opts{run_test}) )
@@ -452,11 +461,19 @@ sub run_tests
         push @exe,qq[ bcftools query -f '$$job{fmt}\\n' ];
         my $exe = expand_paths($opts, $test, join('|',@exe));
         my $cmt = exists($$job{comment}) ? $$job{comment} : '';
-        print "\n# $test\n$cmt$exe\n";
+        if ( $$opts{verbose} )
+        {
+            print "\n# $test\n$cmt$exe\n";
+        }
 
         # Run the test
         if ( $$opts{dry_run} ) { next; }
-        run_test($opts,$$job{exp},$exe);
+        my ($ret,$msg) = run_test($opts,$$job{exp},$exe);
+        if ( $$opts{verbose} or $ret )
+        {
+            if ( !$$opts{verbose} ) { print "\n# $test\n$cmt$exe\n"; }
+            print join('',@$msg);
+        }
     }
 
     # Print the summary status
