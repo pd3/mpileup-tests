@@ -27,7 +27,7 @@ exp: 1:131 TAC T,TACACAC 1/2 1,22,8
 # IGV snapshot: CHM1-CHM13-2.45x/CHM1_CHM13_2.45x-1-3306513.png
 cmd: bcftools mpileup --indels-2.0 -a AD -t 1:144 -f CHM1_CHM13_2.45x-1-3306513.fa CHM1_CHM13_2.45x-1-3306513.bam
 fmt: %CHROM:%POS %REF %ALT [ %GT] [ %AD]
-exp: 1:144 GCCC GC,G 1/2 2,10,4
+exp: 1:144 GCCC GC,G 1/2 2,11,4
 
 # Low coverage, few supporting reads, noisy, not clear which alleles to call
 # IGV snapshot: CHM1-CHM13-2.45x/CHM1_CHM13_2.45x-1-4046152.png

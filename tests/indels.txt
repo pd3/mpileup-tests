@@ -24,3 +24,24 @@ cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:148,1:155 -f het-indels-snp
 fmt: %CHROM:%POS %REF %ALT [ %AD]
 exp: 1:148 GCC G 25,26; 1:155 G GGGCT 24,24
 
+# Complex region with three haplotypes: ref, ref+downstream del, ins+number of mismatches
+# Only the 1:115 deletion should be called, not the insertion at 1:133 or SNV at 1:111.
+# FIXME: unfortunately the FP 1:111 SNV is called because SNV calling does not work with the indel haplotypes
+# IGV snapshot: indels/het-indels-snps.2.png
+cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:115,1:133 -f het-indels-snps.2.fa het-indels-snps.2.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: 1:115 ACAGT A  19,16
+
+# FIXME: many soft-clipped reads support the big insertion, but only 21 are used, likely because of left soft clips
+# IGV snapshot: indels/big-ins.png
+cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:150 -f big-ins.fa big-ins.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: 1:150 T TGCCCTTTGGCAGAGCAGGTGTGCTGTGCTG 1,21
+
+# Complex regions with many haplotypes and three main ones: ref, del at 1:155, and snv+ins+del. The ins at 1:173 is correctly not
+# called (it's on too many haplotypes, noisy), but then the snv at 1:151 should not be called either.
+# FIXME: SNV calling does not work with the indel haplotypes, hence correctly skipping an indel but leaving in a SNV
+# IGV snapshot: indels/complex.CHM1-CHM13.1-821320-821370.png
+cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:150-200 -f complex.CHM1-CHM13.1-821320-821370.fa complex.CHM1-CHM13.1-821320-821370.bam
+exp: 1:151 C T; 1:155 ACAGT A
+

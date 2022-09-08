@@ -397,7 +397,7 @@ sub run_test
     {
         push @msg,".. variant(s) missed\n";
         push @msg,"\texpected: $exp\n";
-        push @msg,"\tfound:    ",join(', ',@$out),"\n";
+        push @msg,"\tfound:    ",join('; ',@$out),"\n";
         $$stats{nvariants_missed} += scalar @exp_variants - $has_variant;
         $$stats{nvariants_match}  += $has_variant;
         return (-1,\@msg);
@@ -411,7 +411,7 @@ sub run_test
     {
         push @msg,".. details missed\n";
         push @msg,"\texpected: $exp\n";
-        push @msg,"\tfound:    ",join(', ',@$out),"\n";
+        push @msg,"\tfound:    ",join('; ',@$out),"\n";
         $$stats{ndetails_missed} += scalar @exp_variants - $has_details;
         $$stats{ndetails_match}  += $has_details;
         return (-1,\@msg);
