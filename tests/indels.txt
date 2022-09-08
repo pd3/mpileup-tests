@@ -45,3 +45,9 @@ exp: 1:150 T TGCCCTTTGGCAGAGCAGGTGTGCTGTGCTG 1,21
 cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:150-200 -f complex.CHM1-CHM13.1-821320-821370.fa complex.CHM1-CHM13.1-821320-821370.bam
 exp: 1:151 C T; 1:155 ACAGT A
 
+# snapshot: indels/phased-del-ins.CHM1-CHM13.1-5567664-5567681.png
+cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:146,1:160 -f phased-del-ins.CHM1-CHM13.1-5567664-5567681.fa phased-del-ins.CHM1-CHM13.1-5567664-5567681.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: 1:146 CGGGGCAGGCATGG C 17,13; 1:160 C CCAA 18,9
+
+
