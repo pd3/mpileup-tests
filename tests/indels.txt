@@ -58,3 +58,10 @@ cmd: bcftools mpileup -a AD --indels-2.0 -t chr1:72 -f mosaic1.fa mosaic1.1.bam 
 fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
 exp: chr1:72 CA C,CAA  0/2:13,0,4 0/1:20,2,0 0/1:14,2,0
 
+# Noisy region with majority of reads soft clipped and only few reads supporting the indel. Even though there are more reads supporting the smaller deletion,
+# the longer del is selected and 0/1 call is made
+# snapshot: indels/noisy-softclips.png
+cmd: bcftools mpileup --indels-2.0 -a AD -t chr1:74 -f noisy-softclips.fa noisy-softclips.bam | bcftools call -mA | bcftools view -i 'N_ALT>0' | bcftools norm -f noisy-softclips.fa
+fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
+exp: chr1:74 CAAAAAA C,CAAAA  0/0:4,2,5
+
