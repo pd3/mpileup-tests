@@ -50,4 +50,11 @@ cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:146,1:160 -f phased-del-ins
 fmt: %CHROM:%POS %REF %ALT [ %AD]
 exp: 1:146 CGGGGCAGGCATGG C 17,13; 1:160 C CCAA 18,9
 
+# The homopolymer run contains several reads with 1bp insertion and deletion in different samples and by default they
+# are not called (correctly) unless the prior is amped up for great sensitivity. This tests also the interpretation of
+# -mF threshold, are all indel types included once the site is passed? See description in bam2bcf_iaux.c.
+# snapshot: indels/mosaic1.png
+cmd: bcftools mpileup -a AD --indels-2.0 -t chr1:72 -f mosaic1.fa mosaic1.1.bam mosaic1.2.bam mosaic1.3.bam | bcftools call -m -P0.1 | bcftools view -i 'N_ALT>0' | bcftools norm -f mosaic1.fa
+fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
+exp: chr1:72 CA C,CAA  0/2:13,0,4 0/1:20,2,0 0/1:14,2,0
 
