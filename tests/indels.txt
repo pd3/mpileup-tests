@@ -14,6 +14,7 @@ exp: chrX:93 T TA  1,25 34,0
 
 # Homozygous deletion which had in past incorret AD counts. However, the heuristics introduced by #1446 seems no
 # longer necessary and is removed from --indels-2.0
+# snapshot: indels/homdel-issue-1446.png
 cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t MN908947.3:143 -f homdel-issue-1446.fa homdel-issue-1446.bam
 fmt: %CHROM:%POS %REF %ALT [ %AD]
 exp: MN908947.3:143	CA	C 4,253
