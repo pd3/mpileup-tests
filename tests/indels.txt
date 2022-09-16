@@ -75,4 +75,11 @@ cmd: bcftools mpileup --indels-2.0 -a AD -t chr4:85 -f invisible-left-clips.fa i
 fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
 exp: chr4:85 CAAA C,CA  wrong
 
+# Noisy region with many reads soft-clipped from the right, should not be called but is called as alt het although the number of reference reads is significantly bigger
+# FIXME: very noisy region, should not be called but is, reads soft-clipped from the right
+# snapshot: indels/shouldnt-be-called.png
+cmd: bcftools mpileup --indels-2.0 -a AD -t chr4:75 -f shouldnt-be-called.fa shouldnt-be-called.bam
+fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
+exp: chr4:75 CTTT CT,C  wrong
+
 
