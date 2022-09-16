@@ -65,3 +65,11 @@ cmd: bcftools mpileup --indels-2.0 -a AD -t chr1:74 -f noisy-softclips.fa noisy-
 fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
 exp: chr1:74 CAAAAAA C,CAAAA  0/0:4,2,5
 
+# Noisy region with many reads soft-clipped from the left and invisible to the caller and to the annotations.
+# FIXME: reads soft-clipped from the left are invisible
+# snapshot: indels/invisible-left-clips.png
+cmd: bcftools mpileup --indels-2.0 -a AD -t chr4:85 -f invisible-left-clips.fa invisible-left-clips.bam
+fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
+exp: chr4:85 CAAA C,CA  wrong
+
+
