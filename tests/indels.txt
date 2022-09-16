@@ -14,29 +14,30 @@ exp: chrX:93 T TA  1,25 34,0
 
 # Homozygous deletion which had in past incorret AD counts. However, the heuristics introduced by #1446 seems no
 # longer necessary and is removed from --indels-2.0
+# snapshot: indels/homdel-issue-1446.png
 cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t MN908947.3:143 -f homdel-issue-1446.fa homdel-issue-1446.bam
 fmt: %CHROM:%POS %REF %ALT [ %AD]
-exp: MN908947.3:143	CA	C 0,253
+exp: MN908947.3:143	CA	C 4,253
 
 # 2bp het del with neighbouring phased 4bp het ins plus 2 SNPs
 # tview snapshot: indels/het-indels-snps.png
 cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:148,1:155 -f het-indels-snps.fa het-indels-snps.bam
 fmt: %CHROM:%POS %REF %ALT [ %AD]
-exp: 1:148 GCC G 25,26; 1:155 G GGGCT 24,24
+exp: 1:148 GCC G 28,26; 1:155 G GGGCT 26,24
 
 # Complex region with three haplotypes: ref, ref+downstream del, ins+number of mismatches
 # Only the 1:115 deletion should be called, not the insertion at 1:133 or SNV at 1:111.
 # FIXME: unfortunately the FP 1:111 SNV is called because SNV calling does not work with the indel haplotypes
 # IGV snapshot: indels/het-indels-snps.2.png
-cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:115,1:133 -f het-indels-snps.2.fa het-indels-snps.2.bam
+cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:111,1:115,1:133 -f het-indels-snps.2.fa het-indels-snps.2.bam
 fmt: %CHROM:%POS %REF %ALT [ %AD]
-exp: 1:115 ACAGT A  19,16
+exp: 1:111 C T 32,22; 1:115 ACAGT A  42,16
 
-# FIXME: many soft-clipped reads support the big insertion, but only 21 are used, likely because of left soft clips
+# FIXME: many soft-clipped reads support the big insertion, but only 21 are used because they are soft clipped from left (clipping from right works)
 # IGV snapshot: indels/big-ins.png
 cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:150 -f big-ins.fa big-ins.bam
 fmt: %CHROM:%POS %REF %ALT [ %AD]
-exp: 1:150 T TGCCCTTTGGCAGAGCAGGTGTGCTGTGCTG 1,21
+exp: 1:150 T TGCCCTTTGGCAGAGCAGGTGTGCTGTGCTG 3,21
 
 # Complex regions with many haplotypes and three main ones: ref, del at 1:155, and snv+ins+del. The ins at 1:173 is correctly not
 # called (it's on too many haplotypes, noisy), but then the snv at 1:151 should not be called either.
@@ -45,25 +46,27 @@ exp: 1:150 T TGCCCTTTGGCAGAGCAGGTGTGCTGTGCTG 1,21
 cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:150-200 -f complex.CHM1-CHM13.1-821320-821370.fa complex.CHM1-CHM13.1-821320-821370.bam
 exp: 1:151 C T; 1:155 ACAGT A
 
+# Phased del+ins
 # snapshot: indels/phased-del-ins.CHM1-CHM13.1-5567664-5567681.png
 cmd: bcftools mpileup --indels-2.0 -a AD -L 300 -t 1:146,1:160 -f phased-del-ins.CHM1-CHM13.1-5567664-5567681.fa phased-del-ins.CHM1-CHM13.1-5567664-5567681.bam
 fmt: %CHROM:%POS %REF %ALT [ %AD]
-exp: 1:146 CGGGGCAGGCATGG C 17,13; 1:160 C CCAA 18,9
+exp: 1:146 CGGGGCAGGCATGG C 23,13; 1:160 C CCAA 19,9
 
 # The homopolymer run contains several reads with 1bp insertion and deletion in different samples and by default they
 # are not called (correctly) unless the prior is amped up for great sensitivity. This tests also the interpretation of
 # -mF threshold, are all indel types included once the site is passed? See description in bam2bcf_iaux.c.
+# FIXME: it is not clear if the deletions should be called (only 2 supporting reads and higher coverage), currently they are not called even with `call -P1`
 # snapshot: indels/mosaic1.png
 cmd: bcftools mpileup -a AD --indels-2.0 -t chr1:72 -f mosaic1.fa mosaic1.1.bam mosaic1.2.bam mosaic1.3.bam | bcftools call -m -P0.1 | bcftools view -i 'N_ALT>0' | bcftools norm -f mosaic1.fa
 fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
-exp: chr1:72 CA C,CAA  0/2:13,0,4 0/1:20,2,0 0/1:14,2,0
+exp: chr1:72 C CA  0/1:14,4 0/0:22,0 0/0:15,0
 
 # Noisy region with majority of reads soft clipped and only few reads supporting the indel. Even though there are more reads supporting the smaller deletion,
-# the longer del is selected and 0/1 call is made
+# the longer del is selected and 0/1 call is made with very low quality
 # snapshot: indels/noisy-softclips.png
 cmd: bcftools mpileup --indels-2.0 -a AD -t chr1:74 -f noisy-softclips.fa noisy-softclips.bam | bcftools call -mA | bcftools view -i 'N_ALT>0' | bcftools norm -f noisy-softclips.fa
-fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
-exp: chr1:74 CAAAAAA C,CAAAA  0/0:4,2,5
+fmt: %CHROM:%POS %REF %ALT %QUAL [ %GT:%AD]
+exp: chr1:74 CAAAAAA C,CAAAA 8.52199 1/2:26,2,5
 
 # Noisy region with many reads soft-clipped from the left and invisible to the caller and to the annotations.
 # FIXME: reads soft-clipped from the left are invisible
