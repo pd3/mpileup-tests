@@ -89,4 +89,14 @@ cmd: bcftools mpileup --indels-2.0 -a AD -t chr4:75 -f shouldnt-be-called.fa sho
 fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
 exp: chr4:75 CTTT CT,C  wrong
 
+# FIME: should not be called, homopolymer run, very low VAF
+# snapshot: indels/homopolymer-seqQ.png
+cmd: bcftools mpileup --indels-2.0 -a AD -t chr5:74 -f homopolymer-seqQ.fa homopolymer-seqQ.bam
+fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
+exp: chr5:74 GAA G wrong
 
+# FIXME: an insertion is called in one sample only and insert reads in other samples are invisible because accompanying mismatches are too rare to make it into the consensus
+# snapshot: indels/trio-puzzling.png
+cmd: bcftools mpileup --indels-2.0 -a AD -t chr11:75 -f trio-puzzling.fa trio-puzzling.bam
+fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
+exp: chr11:75 A	AGAGT wrong ..  0/1:62,13 0/0:66,1 0/0:101,0

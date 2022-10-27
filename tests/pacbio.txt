@@ -13,3 +13,6 @@ cmd: bcftools mpileup --indels-2.0 -X pacbio-ccs -a AD -t chr1:13939,chr1:13949 
 fmt: %CHROM:%POS %REF %ALT [ %AD]
 exp: chr1:13939 G GC 9,15; chr1:13949 G C 14,15
 
+cmd: bcftools mpileup --indels-2.0 -X pacbio-ccs -a AD -t 20:11081 -f pacbio-puzzling.fa pacbio-puzzling.bam
+fmt: %CHROM:%POS %REF %ALT [ %GT][ %AD]
+exp: 20:11081 A AC wrong

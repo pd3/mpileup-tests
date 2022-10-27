@@ -406,7 +406,7 @@ sub run_test
     push @msg,".. variants ok\n";
     $$stats{nvariants_match} += $has_variant;
 
-    if ( !$need_details ) { return; }
+    if ( !$need_details ) { return (0,\@msg); }
     if ( scalar @exp_variants != $has_details )
     {
         push @msg,".. details missed\n";
