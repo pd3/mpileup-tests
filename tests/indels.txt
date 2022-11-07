@@ -100,3 +100,9 @@ exp: chr5:74 GAA G wrong
 cmd: bcftools mpileup --indels-2.0 -a AD -t chr11:75 -f trio-puzzling.fa trio-puzzling.bam
 fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
 exp: chr11:75 A	AGAGT wrong ..  0/1:62,13 0/0:66,1 0/0:101,0
+
+# FIXME: only half of the reads reported in DP, unclear why
+# snapshot: indels/sars-cov-depth.png
+cmd: bcftools mpileup --indels-2.0 -a AD -t MN908947.3:109 -f sars-cov-depth.fa sars-cov-depth.bam
+fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
+exp: MN908947.3:109 GGAGAACGCA G  1/1:0,32
