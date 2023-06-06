@@ -21,6 +21,7 @@ sub error
     print
         "Usage: create-bam-test [OPTIONS]\n",
         "Options:\n",
+        "   -a, --anonymize                 Anonymize properly, including shuffling of A,C,G,T bases\n",
         "   -b, --bam FILE                  \n",
         "   -f, --fa-ref FILE               \n",
         "   -k, --keep-samples              \n",
@@ -28,6 +29,8 @@ sub error
         "   -O, --offset INT                \n",
         "   -r, --region REGION             \n",
         "   -h, -?, --help                  This help message.\n",
+        "Examples:\n"
+        "   create-bam-test -a -b file.bam -f ref.fa -r 17:3988 -o slice\n"
         "\n";
     exit -1;
 }
@@ -37,6 +40,7 @@ sub parse_params
     if ( -t STDIN && !@ARGV ) { error(); }
     while (defined(my $arg=shift(@ARGV)))
     {
+        if ( $arg eq '-a' || $arg eq '--anonymize' ) { $$opts{anonymize}=1; next }
         if ( $arg eq '-b' || $arg eq '--bam' ) { push @{$$opts{bam}},shift(@ARGV); next }
         if ( $arg eq '-f' || $arg eq '--fa-ref' ) { $$opts{ref}=shift(@ARGV); next }
         if ( $arg eq '-k' || $arg eq '--keep-samples' ) { $$opts{keep_samples}=1; next }
@@ -56,6 +60,7 @@ sub read_bam
 {
     my ($opts,$ibam,$chr,$beg,$end) = @_;
     my $bam   = $$opts{bam}[$ibam];
+    my %names = ();     # anonymized read names
     my @reads = ();
     my @hdr   = ();
     my @rg    = ();
@@ -81,10 +86,28 @@ sub read_bam
             if ( $i!=@vals ) { splice(@vals,$i,1); }
             push @vals,"RG:Z:rg$ibam";
         }
+        if ( $$opts{anonymize} )
+        {
+            if ( !exists($names{$vals[0]}) ) { $names{$vals[0]} = 'read'.(scalar keys %names); }
+            $vals[0] = $names{$vals[0]};
+            $vals[2] = $$opts{new_chr};
+            $vals[9] = shuffle_seq($opts,$vals[9]);
+        }
         push @reads, \@vals;
     }
     close($fh) or error("close failed: $cmd");
     return { hdr=>\@hdr, rg=>\@rg, reads=>\@reads, beg=>$beg, end=>$end };
+}
+sub shuffle_seq
+{
+    my ($opts,$seq) = @_;
+    for (my $i=0; $i<length($seq); $i++)
+    {
+        my $nuc = uc(substr($seq,$i,1));
+        if ( !exists($$opts{new_nuc}{$nuc}) ) { error("Nucleotide '$nuc' not recognised\n"); }
+        substr($seq,$i,1,$$opts{new_nuc}{$nuc});
+    }
+    return $seq;
 }
 sub create_test
 {
@@ -106,6 +129,18 @@ sub create_test
     my $min_beg = $beg;
     my $max_end = $end;
 
+    $$opts{new_chr} = $chr;
+    if ( $$opts{anonymize} )
+    {
+        $$opts{new_chr} = 'chr';
+
+        use List::Util 'shuffle';
+        my @nuc = (qw(A C G T));
+        while ( join('',@nuc) eq 'ACGT' ) { @nuc = shuffle(@nuc); }
+        $$opts{new_nuc} = { A=>$nuc[0], C=>$nuc[1], G=>$nuc[2], T=>$nuc[3], N=>'N' };
+        print STDERR "Nucleotides shuffled: ".join('',@nuc)."\n";
+    }
+
     my @dat = ();
     for (my $i=0; $i<@{$$opts{bam}}; $i++)
     {
@@ -115,10 +150,9 @@ sub create_test
         if ( $max_end < $$dat{end} ) { $max_end = $$dat{end}; }
     }
 
-
     open(my $out,'>',"$$opts{out}.sam") or error("$$opts{out}.sam: $!");
     print $out join('',@{$dat[0]{hdr}});
-    print $out "\@SQ\tSN:$chr\tLN:".($max_end-$min_beg+1)."\n";
+    print $out "\@SQ\tSN:$$opts{new_chr}\tLN:".($max_end-$min_beg+1)."\n";
     if ( $$opts{keep_samples} )
     {
         for my $dat (@dat)
@@ -151,6 +185,18 @@ sub create_test
     `samtools sort $$opts{out}.sam | samtools view -b -o $$opts{out}.bam`;
     `samtools index $$opts{out}.bam`;
     `samtools faidx $$opts{ref} $chr:$min_beg-$max_end | sed 's,:, ,' > $$opts{out}.fa`;
+    if ( $$opts{anonymize } )
+    {
+        my @seq = grep {chomp} `samtools faidx $$opts{ref} $chr:$min_beg-$max_end`;
+        $seq[0] = ">$$opts{new_chr}";
+        for (my $i=1; $i<@seq; $i++)
+        {
+            $seq[$i] = shuffle_seq($opts,$seq[$i]);
+        }
+        open(my $fh,'>',"$$opts{out}.fa") or error("$$opts{out}.fa: $!");
+        print $fh join("\n",@seq)."\n";
+        close($fh) or error("close failed: $$opts{out}.fa");
+    }
     `samtools faidx $$opts{out}.fa`;
 
     print "offset\t-".($min_beg-1)."\n";
