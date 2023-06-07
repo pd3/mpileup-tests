@@ -29,8 +29,8 @@ sub error
         "   -O, --offset INT                \n",
         "   -r, --region REGION             \n",
         "   -h, -?, --help                  This help message.\n",
-        "Examples:\n"
-        "   create-bam-test -a -b file.bam -f ref.fa -r 17:3988 -o slice\n"
+        "Examples:\n",
+        "   create-bam-test -a -b file.bam -f ref.fa -r 17:3988 -o slice\n",
         "\n";
     exit -1;
 }
