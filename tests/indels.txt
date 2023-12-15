@@ -106,3 +106,10 @@ exp: chr11:75 A	AGAGT wrong ..  0/1:62,13 0/0:66,1 0/0:101,0
 cmd: bcftools mpileup --indels-2.0 -a AD -t MN908947.3:109 -f sars-cov-depth.fa sars-cov-depth.bam
 fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
 exp: MN908947.3:109 GGAGAACGCA G  1/1:0,32
+
+# FIXME: indels-2.0 does not see the indel reads in sample1
+cmd: bcftools mpileup --indels-2.0 -a AD -t chrX:81 -f missed-del-AD.fa missed-del-AD.bam
+fmt: %CHROM:%POS %REF %ALT [ %GT:%AD]
+exp: chrX:81 TG T  0/1:30,31 0/0:5,5
+
+
