@@ -1,6 +1,13 @@
 
 # Apparent de novo deletion is not recognized as such with --indels-cns, alternate AD counts in
 # parents are thought to be bigger than zero
+# IGV snapshot: indels/trio-ad-counts.2.png
+cmd: bcftools mpileup --indels-cns -a AD -t chr:101 -f trio-ad-counts.2.fa trio-ad-counts.2.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: chr:101 TCCA T  22,37 60,0 59,0
+
+# Apparent de novo deletion is not recognized as such with --indels-cns, alternate AD counts in
+# parents are thought to be bigger than zero
 # IGV snapshot: indels/trio-ad-counts.png
 cmd: bcftools mpileup --indels-cns -a AD -t chr:101 -f trio-ad-counts.fa trio-ad-counts.bam
 fmt: %CHROM:%POS %REF %ALT [ %AD]
