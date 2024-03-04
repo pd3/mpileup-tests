@@ -22,7 +22,7 @@ sub error
         "Usage: create-bam-test [OPTIONS]\n",
         "Options:\n",
         "   -a, --anonymize                 Anonymize properly, including shuffling of A,C,G,T bases\n",
-        "   -b, --bam FILE                  \n",
+        "   -b, --bam FILE                  Multiple files can be given\n",
         "   -f, --fa-ref FILE               \n",
         "   -k, --keep-samples              \n",
         "   -o, --output-prefix PATH        \n",

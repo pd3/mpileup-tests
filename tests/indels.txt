@@ -1,4 +1,11 @@
 
+# Apparent de novo deletion is not recognized as such with --indels-cns, alternate AD counts in
+# parents are thought to be bigger than zero
+# IGV snapshot: indels/trio-ad-counts.png
+cmd: bcftools mpileup --indels-cns -a AD -t chr:101 -f trio-ad-counts.fa trio-ad-counts.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: chr:101 ATTAT A 23,16 26,0 32,0
+
 # Two reads don't span the deletion and are aligned as 1-bp insertion instead. The insertion should not be called, it's a homozygous deletion.
 # Note the number of supporting reads is not precise.
 # IGV snapshot: indels/HG002.GRCh38.30x.chr1-53628138-53628148.png
