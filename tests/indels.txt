@@ -1,4 +1,11 @@
 
+# Both --indels-cns and --indels-2.0 miss the unambiguous alternate reads with the insertion in sample1,
+# evidenced by a 1bp mismatch at the end of the reads
+# IGV snapshot: indels/trio-ad-counts.3.png (todo)
+cmd: bcftools mpileup --indels-cns -a AD -t chr:101 -f trio-ad-counts.3.fa trio-ad-counts.3.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: chr:101 C CCT  3,9 6,2 11,0
+
 # Apparent de novo deletion is not recognized as such with --indels-cns, alternate AD counts in
 # parents are thought to be bigger than zero
 # IGV snapshot: indels/trio-ad-counts.2.png
