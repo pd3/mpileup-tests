@@ -1,4 +1,11 @@
 
+# All three indel callers miss the unambiguous alternate read with the deletion in sample2,
+# evidenced by ~8bp mismatches at the end of one read
+# IGV snapshot: indels/trio-ad-counts.4.png (todo)
+cmd: bcftools mpileup --indels-cns -a AD -t chr:90 -f trio-ad-counts.4.fa trio-ad-counts.4.bam
+fmt: %CHROM:%POS %REF %ALT [ %AD]
+exp: chr:90 CCTTG C  4,8 10,0 10,1
+
 # Both --indels-cns and --indels-2.0 miss the unambiguous alternate reads with the insertion in sample1,
 # evidenced by a 1bp mismatch at the end of the reads
 # IGV snapshot: indels/trio-ad-counts.3.png (todo)
