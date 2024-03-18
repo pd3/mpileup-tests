@@ -200,6 +200,6 @@ sub create_test
     `samtools faidx $$opts{out}.fa`;
 
     print "offset\t-".($min_beg-1)."\n";
-    printf "region\t%s:%d-%d\n",$chr,$beg-$min_beg+1,$end-$min_beg+1;
+    printf "region\t%s:%d-%d\n",$$opts{new_chr},$beg-$min_beg+1,$end-$min_beg+1;
 }
 
