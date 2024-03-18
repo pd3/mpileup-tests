@@ -1,4 +1,9 @@
 
+# Missed insertions in multisample calling
+cmd: bcftools mpileup --indels-cns -a AD -t chr:101 -f trio-missed-homref.fa trio-missed-homref.bam
+fmt: %CHROM:%POS %REF %ALT [ %GT]
+exp: chr:101 T TC  0/1 0/0 0/0
+
 # All three indel callers miss the unambiguous alternate read with the deletion in sample2,
 # evidenced by ~8bp mismatches at the end of one read
 # IGV snapshot: indels/trio-ad-counts.4.png (todo)
